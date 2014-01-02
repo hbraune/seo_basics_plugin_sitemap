@@ -1,0 +1,27 @@
+plugin.tx_seobasicspluginsitemap {
+    extensions {
+
+    }
+}
+
+###############################################
+# Sample Configuration
+###############################################
+
+/*
+plugin.tx_seobasicspluginsitemap {
+    extensions {
+        news {
+            detailPid = 24
+            table = tx_news_domain_model_news
+            additionalParams {
+                1 = tx_news_pi1[news]=$uid
+            }
+            fields {
+                uid = uid
+                tstamp = tstamp
+            }
+        }
+    }
+}
+*/
