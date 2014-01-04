@@ -45,10 +45,11 @@ class Sitemap {
         foreach($plugins as $plugin => $configuration) {
 
             if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded(substr($plugin, 0, -1))) {
+                $where = 'hidden = 0 AND deleted = 0' . (isset($configuration['where'])) ? ' ' . $configuration['where'] : '';
                 $result = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
                     implode(',', $configuration['fields.']),
                     $configuration['table'],
-                    'hidden = 0 AND deleted = 0'
+                    $where
                 );
 
                 $additionalParams = array();
