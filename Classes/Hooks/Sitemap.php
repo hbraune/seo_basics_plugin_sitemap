@@ -81,7 +81,8 @@ class Sitemap extends \tx_seobasics_sitemap {
                         if (isset($sitemap->conf['useDomain'])) {
                             $current = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
                             $current = parse_url($current);
-                            $link = $current['scheme'] . '://' . $sitemap->conf['useDomain'] . $link;
+                            $slash = (substr($link, 0, 1) == '/') ? '' : '/';
+                            $link = $current['scheme'] . '://' . $sitemap->conf['useDomain'] . $slash . $link;
                         }
 
                         if ($row[$configuration['fields.']['tstamp']]) {

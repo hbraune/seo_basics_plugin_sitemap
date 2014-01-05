@@ -1,7 +1,7 @@
 Extension Manual
 =================
 
-This is a template manual aiming to pave the way to developers when it comes about documentation. The template provides a structure that a developer can take over and, in addition, many useful snippets and examples. Documentation is written in reST format. Refer to Help writing reStructuredText to get some more insight about the syntax and available reST editors. For instance, you might be particularly interested how you can :
+This extensions uses a hook of the seo_basics XML sitemap to include generic urls from any plugin which has a single view.
 
 * generate the documentation using on-line services (@todo to write) 
 * `make links`_ accros projects
