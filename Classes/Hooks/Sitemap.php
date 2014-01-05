@@ -32,14 +32,13 @@ namespace HENRIKBRAUNE\SeoBasicsPluginSitemap\Hooks;
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class Sitemap {
+class Sitemap extends \tx_seobasics_sitemap {
 
     /**
      * @param array $params
      */
-    public function setAdditionalUrls($params) {
+    public function setAdditionalUrls($params, $sitemap) {
 
-        $cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer');
         $plugins = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_seobasicspluginsitemap.']['extensions.'];
 
         foreach($plugins as $plugin => $configuration) {
@@ -67,7 +66,23 @@ class Sitemap {
                             $uniqueAdditionalParams[$paramName] = (substr($paramValue, 0, 1) == '$') ? $row[substr($paramValue, 1)] : $paramValue;
                         }
 
-                        $link = $cObj->getTypoLink_URL($configuration['detailPid'], $uniqueAdditionalParams);
+                        $conf = array(
+                            'parameter' => $configuration['detailPid'],
+                            'additionalParams' => \TYPO3\CMS\Core\Utility\GeneralUtility::implodeArrayForUrl('', $uniqueAdditionalParams),
+                            'returnLast' => 'url'
+                        );
+
+                        if (!isset($sitemap->conf['useDomain'])) {
+                            $conf['forceAbsoluteUrl'] = 1;
+                        }
+
+                        $link = $GLOBALS['TSFE']->cObj->typolink('', $conf);
+
+                        if (isset($sitemap->conf['useDomain'])) {
+                            $current = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
+                            $current = parse_url($current);
+                            $link = $current['scheme'] . '://' . $sitemap->conf['useDomain'] . $link;
+                        }
 
                         if ($row[$configuration['fields.']['tstamp']]) {
                             $lastmod = '<lastmod>' . htmlspecialchars(date('c', $row[$configuration['fields.']['tstamp']])) . '</lastmod>';
