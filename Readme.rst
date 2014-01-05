@@ -1,15 +1,47 @@
 Extension Manual
 =================
 
-This is a template manual aiming to pave the way to developers when it comes about documentation. The template provides a structure that a developer can take over and, in addition, many useful snippets and examples. Documentation is written in reST format. Refer to Help writing reStructuredText to get some more insight about the syntax and available reST editors. For instance, you might be particularly interested how you can :
+This extensions uses a hook of the seo_basics XML sitemap to include generic urls from any plugin which has a single view. It works well with realurl.
 
-* generate the documentation using on-line services (@todo to write) 
-* `make links`_ accros projects
-* how you should write TypoScript reference.
+Requirements
+-----------------
+TYPO3 >= 6.0.0 and <= 6.1.99 
 
-Any idea or suggestion for improving this template `can be drop`_ to our team_. And remember: documentation is like gift wrapping, it looks like superfluous, but your friend tends to be rather disappointed when their presents arrive in supermarket carrier bags. (Documentation-Driven Design quote)
+Installation
+-----------------
 
-.. _can be drop: http://forge.typo3.org/projects/typo3v4-official_extension_template/issues
-.. _team: http://forge.typo3.org/projects/typo3v4-official_extension_template
-.. _make links: RestructuredtextHelp.html#cross-linking
-.. _can write TypoScript: RestructuredtextHelp.html#typoscript-reference
+Just install the extension from ter by searching for "seo_basics_plugin_sitemap" in the extension manager.
+
+Configuration
+-----------------
+
+Simply add a plugin definition to the sitemap in your TypoScript Template.
+This is an example for all records of the extension tx_news:
+
+```
+plugin.tx_seobasicspluginsitemap {
+	extensions {
+	  # The extension key
+	  news {
+    	  # Insert the uid of the page which displays the single view of your plugin.
+    	  detailPid = 54
+    	  # The uid of your storage folder (optional)
+    	  where = pid=100
+    	      
+    	  # The look up table
+    	  table = tx_news_domain_model_news
+    	      
+    	  # An array of params for link building
+    	  additionalParams {
+    	  	1 = tx_news_pi1[news]=$uid
+    	  }
+    	      
+    	  # Mapping of fields, which adds the possibility to use alternate fields for item generation.
+    	  fields {
+    			uid = uid
+    	    	tstamp = crdate
+    	    }
+	    }
+    }
+}
+```
