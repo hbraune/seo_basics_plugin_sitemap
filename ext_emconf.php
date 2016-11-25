@@ -10,7 +10,7 @@
  * "version" and "dependencies" must not be touched!
  ***************************************************************/
 
-$EM_CONF[$_EXTKEY] = array(
+$EM_CONF[$_EXTKEY] = [
 	'title' => 'SEO Basics Sitemap for Plugins',
 	'description' => '',
 	'category' => 'fe',
@@ -28,17 +28,14 @@ $EM_CONF[$_EXTKEY] = array(
 	'clearCacheOnLoad' => 0,
 	'lockType' => '',
 	'version' => '0.1.2',
-	'constraints' => array(
-		'depends' => array(
-			'typo3' => '6.0.0-6.2.99',
-			'extbase' => '1.3',
-			'fluid' => '1.3',
-		),
-		'conflicts' => array(
-		),
-		'suggests' => array(
-		),
-	),
-);
-
-?>
+	'constraints' => [
+		'depends' => [
+			'typo3' => '7.6.0-8.9.99',
+            'seo_basics' => '>=0.9.6'
+		],
+		'conflicts' => [
+		],
+		'suggests' => [
+		],
+	],
+];
