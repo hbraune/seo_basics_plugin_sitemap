@@ -101,16 +101,16 @@ class Sitemap
                         $link = $this->frontendController->cObj->typoLink_URL($conf);
 
                         if ($row[$configuration['fields']['tstamp']]) {
-                            $lastmod = '<lastmod>' . htmlspecialchars(date('c', $row[$configuration['fields']['tstamp']])) . '</lastmod>';
+                            $lastmod = '
+		<lastmod>' . htmlspecialchars(date('c', $row[$configuration['fields']['tstamp']])) . '</lastmod>';
                         } else {
                             $lastmod = '';
                         }
 
                         $params['content'] .= '
-                            <url>
-                                <loc>' . htmlspecialchars($link) . '</loc>' . $lastmod . '
-                            </url>
-                        ';
+	<url>
+		<loc>' . htmlspecialchars($link) . '</loc>' . $lastmod . '
+	</url>';
                     }
                 }
             }
