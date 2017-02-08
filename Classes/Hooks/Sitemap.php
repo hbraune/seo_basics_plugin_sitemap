@@ -1,29 +1,34 @@
 <?php
 namespace HENRIKBRAUNE\SeoBasicsPluginSitemap\Hooks;
 
-    /***************************************************************
-     *  Copyright notice
-     *
-     *  (c) 2014 Henrik Braune <henrik@braune.org>, HENRIK BRAUNE
-     *
-     *  All rights reserved
-     *
-     *  This script is part of the TYPO3 project. The TYPO3 project is
-     *  free software; you can redistribute it and/or modify
-     *  it under the terms of the GNU General Public License as published by
-     *  the Free Software Foundation; either version 3 of the License, or
-     *  (at your option) any later version.
-     *
-     *  The GNU General Public License can be found at
-     *  http://www.gnu.org/copyleft/gpl.html.
-     *
-     *  This script is distributed in the hope that it will be useful,
-     *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-     *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     *  GNU General Public License for more details.
-     *
-     *  This copyright notice MUST APPEAR in all copies of the script!
-     ***************************************************************/
+/***************************************************************
+ *  Copyright notice
+ *
+ *  (c) 2014 Henrik Braune <henrik@braune.org>, HENRIK BRAUNE
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+use B13\SeoBasics\Controller\SitemapController;
+use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  *
@@ -32,74 +37,83 @@ namespace HENRIKBRAUNE\SeoBasicsPluginSitemap\Hooks;
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class Sitemap extends \tx_seobasics_sitemap {
+class Sitemap
+{
+
+    /**
+     * @var TypoScriptFrontendController
+     */
+    protected $frontendController;
+
+    /**
+     * @var DatabaseConnection
+     */
+    protected $dbConnection;
+
+    public function __construct()
+    {
+        $this->frontendController = $GLOBALS['TSFE'];
+        $this->dbConnection = $GLOBALS['TYPO3_DB'];
+    }
 
     /**
      * @param array $params
+     * @param SitemapController $sitemap
+     * @return void
      */
-    public function setAdditionalUrls($params, $sitemap) {
+    public function setAdditionalUrls($params, SitemapController $sitemap)
+    {
 
-        $plugins = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_seobasicspluginsitemap.']['extensions.'];
+        $plugins = GeneralUtility::removeDotsFromTS($this->frontendController->tmpl->setup['plugin.']['tx_seobasicspluginsitemap.']['extensions.']);
 
-        foreach($plugins as $plugin => $configuration) {
+        foreach ($plugins as $plugin => $configuration) {
+            if (ExtensionManagementUtility::isLoaded($plugin)) {
+                $where = !empty($configuration['where']) ? $configuration['where'] : '';
 
-            if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded(substr($plugin, 0, -1))) {
-                $where = 'hidden = 0 AND deleted = 0';
-                $where .= (isset($configuration['where'])) ? ' AND ' . $configuration['where'] : '';
-                $result = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-                    implode(',', $configuration['fields.']),
+                $enableFileds = $this->frontendController->cObj->enableFields($configuration['table']);
+                $where .= empty($where) ? substr($enableFileds, 4) : $enableFileds;
+
+                $result = $this->dbConnection->exec_SELECTgetRows(
+                    implode(',', $configuration['fields']),
                     $configuration['table'],
                     $where
                 );
 
-                $additionalParams = array();
-                foreach ($configuration['additionalParams.'] as $param) {
-                    $pair = explode('=', $param);
+                $additionalParams = [];
+                foreach ($configuration['additionalParams'] as $param) {
+                    $pair = GeneralUtility::trimExplode('=', $param);
                     $additionalParams[$pair[0]] = $pair[1];
                 }
 
-                if ($GLOBALS['TYPO3_DB']->sql_num_rows($result)) {
-                    while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($result)){
-
-                        $uniqueAdditionalParams = array();
-                        foreach($additionalParams as $paramName => $paramValue) {
+                if (is_array($result)) {
+                    foreach ($result as $row) {
+                        $uniqueAdditionalParams = [];
+                        foreach ($additionalParams as $paramName => $paramValue) {
                             $uniqueAdditionalParams[$paramName] = (substr($paramValue, 0, 1) == '$') ? $row[substr($paramValue, 1)] : $paramValue;
                         }
 
-                        $conf = array(
+                        $conf = [
                             'parameter' => $configuration['detailPid'],
-                            'additionalParams' => \TYPO3\CMS\Core\Utility\GeneralUtility::implodeArrayForUrl('', $uniqueAdditionalParams),
-                            'returnLast' => 'url'
-                        );
+                            'additionalParams' => GeneralUtility::implodeArrayForUrl('', $uniqueAdditionalParams),
+                            'forceAbsoluteUrl' => 1
+                        ];
 
-                        if (!isset($sitemap->conf['useDomain'])) {
-                            $conf['forceAbsoluteUrl'] = 1;
-                        }
+                        $link = $this->frontendController->cObj->typoLink_URL($conf);
 
-                        $link = $GLOBALS['TSFE']->cObj->typolink('', $conf);
-
-                        if (isset($sitemap->conf['useDomain'])) {
-                            $current = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
-                            $current = parse_url($current);
-                            $slash = (substr($link, 0, 1) == '/') ? '' : '/';
-                            $link = $current['scheme'] . '://' . $sitemap->conf['useDomain'] . $slash . $link;
-                        }
-
-                        if ($row[$configuration['fields.']['tstamp']]) {
-                            $lastmod = '<lastmod>' . htmlspecialchars(date('c', $row[$configuration['fields.']['tstamp']])) . '</lastmod>';
+                        if ($row[$configuration['fields']['tstamp']]) {
+                            $lastmod = '
+		<lastmod>' . htmlspecialchars(date('c', $row[$configuration['fields']['tstamp']])) . '</lastmod>';
                         } else {
                             $lastmod = '';
                         }
 
                         $params['content'] .= '
-                            <url>
-                                <loc>' . htmlspecialchars($link) . '</loc>' . $lastmod . '
-                            </url>
-                        ';
+	<url>
+		<loc>' . htmlspecialchars($link) . '</loc>' . $lastmod . '
+	</url>';
                     }
                 }
             }
         }
     }
 }
-?>

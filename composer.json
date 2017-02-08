@@ -1,0 +1,18 @@
+{
+  "name": "henrikbraune/seo-basics-plugin-sitemap",
+  "description": "SEO Basics Sitemap for Plugins.",
+  "type": "typo3-cms-extension",
+  "license": "GPL-2.0+",
+  "autoload": {
+    "psr-4": {
+      "HENRIKBRAUNE\\SeoBasicsPluginSitemap\\": "Classes/"
+    }
+  },
+  "replace": {
+    "seo_basics_plugin_sitemap": "self.version",
+    "typo3-ter/seo_basics_plugin_sitemap": "self.version"
+  },
+  "require": {
+    "typo3/cms": ">=8.0.0 <=8.9.99"
+  }
+}
